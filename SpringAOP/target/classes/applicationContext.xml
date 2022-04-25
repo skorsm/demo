@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/aop
+            http://www.springframework.org/schema/aop/spring-aop.xsd
+">
+
+    <aop:config>
+        <!--配置切面-->
+
+        <aop:aspect ref="advice">
+            <!--配置切面，把通知类中的方法和目标类中的方法进行关联-->
+            <!--切入点表达式，要把方法的包名和类名都带上-->
+            <aop:before method="one" pointcut="execution(public void com.dx.springaop.TargetObj.method1())" />
+        </aop:aspect>
+    </aop:config>
+
+    <!--目标对象-->
+    <bean id="target" class="com.dx.springaop.TargetObj"></bean>
+    <!--通知对象-->
+    <bean id="advice" class="com.dx.springaop.MyAdvice"></bean>
+
+</beans>

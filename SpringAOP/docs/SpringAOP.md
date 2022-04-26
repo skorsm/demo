@@ -1,4 +1,4 @@
-#SpringAOP 相关概念
+#一、SpringAOP 相关概念
 ##1. 连接点(Joinpoint)
     连接点指类中的方法
 ##2. 切入点(Pointcut)
@@ -28,3 +28,147 @@
     通过AOP代理，完成了切入点与通知的融合，并组成了完整的代码逻辑，将通知加入到切入点对应
     位置的动作称为织入。
     织入是一个动态过程，不对应任何代码，可以理解为动态的运行过程。
+
+#二、切入点表达式
+    用来匹配切入点方法
+    格式：execution(切入点表达式)
+***例如***
+```xml
+<aop:config>
+        <!--配置切面-->
+
+        <aop:aspect ref="advice">
+            <!--配置切面，把通知类中的方法和目标类中的方法进行关联-->
+            <!--切入点表达式，要把方法的包名和类名都带上，方法修饰符可以省略-->
+            <aop:before method="one" pointcut="execution(public void com.dx.springaop.TargetObj.method1())" />
+        </aop:aspect>
+    </aop:config>
+```
+
+##通配符：*
+###1、可以匹配返回值类型
+```xml
+<!--匹配返回值类型-->
+<aop:before method="one" pointcut="execution(* com.dx.springaop.TargetObj.method1())" />
+```
+###2、可以匹配包名
+```xml
+<!--匹配包名-->
+<aop:before method="one" pointcut="execution(* *.*.springaop.TargetObj.method1())" />
+```
+```xml
+<!--"*.."表示匹配任意层级的包名匹配-->
+<aop:before method="one" pointcut="execution(* *..TargetObj.method1())" />
+```
+###3、可以匹配类名
+```xml
+<!--"*"号可以表示任意开头、结尾或者中间的字符串-->
+<!--"Tar*"表示以Tar开头的类名-->
+<aop:before method="one" pointcut="execution(* *..Tar*.method1())"/>
+```
+###4、可以匹配方法名
+```xml
+<!--"*"号可以表示任意开头、结尾或者中间的字符串-->
+<!--"met*"表示以Tar开头的方法名-->
+<aop:before method="one" pointcut="execution(* *..Tar*.met*())"/>
+```
+###5、可以匹配参数
+```xml
+<!--".."号可以表示任意多个参数(包括0个).也可以直接与关键字联用或者单用关键字.还可以与"*"联用，三者可以排列组合使用-->
+<aop:before method="one" pointcut="execution(* *..Tar*.met*(int,*,..))"/>
+```
+
+##切入点配置方式
+###1、局部切入点
+```xml
+<aop:config>
+        <!--配置切面-->
+        <aop:aspect ref="advice">
+            <!--配置切面，把通知类中的方法和目标类中的方法进行关联-->
+            <!--切入点表达式，要把方法的包名和类名都带上，方法修饰符可以省略-->
+            <aop:before method="one" pointcut="execution(public void com.dx.springaop.TargetObj.method1())" />
+        </aop:aspect>
+    </aop:config>
+```
+###2、切面间共享切入点
+```xml
+<aop:config>
+    <!--切面间共享切入点-->
+    <aop:pointcut id="abc" expression="execution(public void com.dx.springaop.TargetObj.method3())"/>
+    <aop:aspect ref="advice">
+        <aop:before method="one" pointcut-ref="abc"/>
+    </aop:aspect>
+    <aop:aspect ref="advice">
+        <aop:before method="two" pointcut-ref="abc"/>
+    </aop:aspect>
+</aop:config>
+```
+###3、切面内共享切入点
+```xml
+<aop:config>
+<!--切面内共享切入点-->
+    <aop:aspect ref="advice">
+        <aop:pointcut id="abc" expression="execution(* *..TargetObj.method3())"/>
+        <aop:before method="two" pointcut-ref="abc"/>
+        <aop:before method="one" pointcut-ref="abc"/>
+    </aop:aspect>
+</aop:config>
+```
+
+#三、AOP通知类型
+    通知类型就是通知位置的意思
+###1、before：前置通知（应用：各种校验）
+    在方法执行前执行
+    该方法中出现了异常，不会影响前置通知的执行
+```xml
+<aop:aspect ref="advice">
+    <aop:pointcut id="abc" expression="execution(* *..TargetObj.method3())"/>
+    <!--前置通知-->
+    <aop:before method="before" pointcut-ref="abc"/>
+</aop:aspect>
+```
+###2、after：后置通知（应用：清理现场）
+    在方法执行后执行
+    方法执行完毕后执行，无论方法中是否出现异常都会执行
+```xml
+<aop:aspect ref="advice">
+    <aop:pointcut id="abc" expression="execution(* *..TargetObj.method3())"/>
+    <!--后置通知-->
+    <aop:after method="after" pointcut-ref="abc"/>
+</aop:aspect>
+```
+###3、afterReturning：返回后处理（应用：常规数据处理）
+    方法执行完毕后执行，如果方法中抛出异常，无法执行
+```xml
+<aop:aspect ref="advice">
+    <aop:pointcut id="abc" expression="execution(* *..TargetObj.method3())"/>
+   <!--返回后通知-->
+    <aop:after-returning method="afterReturning" pointcut-ref="abc"/>
+</aop:aspect>
+```
+###4、afterThrowing：抛出异常后通知（应用：包装异常信息）
+    方法抛出异常后执行，如果方法没有抛出异常，无法执行
+```xml
+<aop:aspect ref="advice">
+    <aop:pointcut id="abc" expression="execution(* *..TargetObj.method3())"/>
+    <!--抛出异常后通知-->
+    <aop:after-throwing method="afterThrowing" pointcut-ref="abc"/>
+</aop:aspect>
+```
+###5、around：环绕通知（应用：十分强大，可以做任何事情）
+    方法执行前后分别执行，如果方法中有异常，末尾的通知就不执行了
+```xml
+<aop:aspect ref="advice">
+    <aop:pointcut id="abc" expression="execution(* *..TargetObj.method3())"/>
+    <!--环绕通知-->
+    <aop:around method="around" pointcut-ref="abc"/>
+</aop:aspect>
+```
+***注意：*** 要想使用环绕通知，必须有一个调用切入点方法的动作。此时在对应通知类中需要传入ProceedingJoinPoint类的参数代表切入点方法，执行proceed()方法代表切入点方法执行了。例如：
+```java
+ public void around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+        System.out.println("around......start....");
+        proceedingJoinPoint.proceed();
+        System.out.println("around......end....");
+}
+```

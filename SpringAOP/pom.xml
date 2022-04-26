@@ -19,13 +19,33 @@
             <artifactId>spring-core</artifactId>
             <version>5.3.6</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>5.3.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-expression</artifactId>
+            <version>5.3.6</version>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>5.3.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <version>5.3.6</version>
+        </dependency>
         <dependency>
             <groupId>aopalliance</groupId>
             <artifactId>aopalliance</artifactId>
@@ -36,8 +56,8 @@
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
             <version>1.9.5</version>
-            <scope>runtime</scope>
         </dependency>
+
     </dependencies>
 
     <properties>

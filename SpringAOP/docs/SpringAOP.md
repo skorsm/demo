@@ -172,3 +172,155 @@
         System.out.println("around......end....");
 }
 ```
+
+#四、AOP执行相对顺序
+    AOP通知类型存在5种，其中分为在方法前执行和方法后执行。
+    方法前执行：before、around；
+    方法后执行：after、afterReturning、around；
+###1、同一个切面中通知的相对顺序
+    前置通知的执行顺序和在配置文件中配置的顺序一致；
+    后置通知的执行顺序也和在配置文件中配置的顺序一致；
+    总之，先配置先执行
+###2、不同切面中通知的相对顺序
+    前置通知的执行顺序和在配置文件中配置的顺序一致；
+    后置通知的配置顺序和执行顺序相反，越是最后配置的越先执行，越先配置的越后执行。
+
+#AOP通知获取匹配方法的参数
+###1、通过给通知添加JoinPoint形参来获得被匹配方法的参数(around通知是ProceedingJoinPoint形参)，改参数位于形参的第一位，使用对应的JoinPoint的getArgs()获取对应的值。例如：
+```xml
+<aop:pointcut id="abc" expression="execution(* *..TargetObj.method1(..))"/>
+<!--切面内共享切入点-->
+<aop:aspect ref="advice">
+    <!--前置通知-->
+    <aop:around method="around" pointcut-ref="abc"/>
+    <aop:before method="before" pointcut-ref="abc"/>
+
+    <!--后置通知-->
+    <aop:after method="after" pointcut-ref="abc"/>
+    <!--返回后通知-->
+</aop:aspect>
+```
+```java
+public void before(JoinPoint joinPoint){
+    Object[] args = joinPoint.getArgs();
+    for (Object obj : args){
+        System.out.println("before：" + obj);
+    }
+    System.out.println("before......");
+}
+
+public void after(JoinPoint joinPoint){
+    Object[] args = joinPoint.getArgs();
+    for (Object obj : args){
+        System.out.println("after：" + obj);
+    }
+    System.out.println("after......");
+}
+
+public void around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+    System.out.println("around......start....");
+    Object[] args = proceedingJoinPoint.getArgs();
+    for (Object obj : args){
+        System.out.println("around before：" + obj);
+    }
+    proceedingJoinPoint.proceed();
+    args = proceedingJoinPoint.getArgs();
+    for (Object obj : args){
+        System.out.println("around after：" + obj);
+    }
+    System.out.println("around......end....");
+}
+```
+###2、AOP通知还可以使用切入点表达式指定通知参数名，参数的名称为通知中用于获取参数值的形参名称，例如：
+```xml
+<aop:pointcut id="method4" expression="execution(* com.dx.springaop.TargetObj.method4(..)) &amp;&amp; args(a,b)"/>
+<aop:aspect ref="advice">
+    <aop:before method="before2" pointcut-ref="method4"/>
+</aop:aspect>
+```
+```java
+public void before2(String a, int b){
+    System.out.println("before2 args: " + a + ",args: " + b);
+    System.out.println("before......");
+}
+```
+
+#AOP通知修改目标对象方法参数(只有around通知的ProceedingJoinPoint 形参可以在修改形参后再重新调用切入点方法), 例：
+```xml
+<aop:config>
+    <aop:pointcut id="method5" expression="execution(* com.dx.springaop.TargetObj.method5(..))"/>
+    <aop:aspect ref="advice">
+        <aop:around method="around2" pointcut-ref="method5"/>
+    </aop:aspect>
+</aop:config>
+```
+```java
+public int around2(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+    System.out.println("around......start....");
+    Object[] args = proceedingJoinPoint.getArgs();
+    for (int i = 0; i < args.length; i++){
+        args[i] = (int)args[i] + 10;
+    }
+    int rst = (Integer) proceedingJoinPoint.proceed(args);
+    System.out.println("around2 result: " + rst);
+    System.out.println("around......end....");
+
+    return rst;
+}
+```
+
+#AOP获取目标对象方法返回值
+###1.afterReturning通知：
+```xml
+<aop:config>
+    <aop:pointcut id="method5" expression="execution(* com.dx.springaop.TargetObj.method5(..))"/>
+    <aop:aspect ref="advice">
+        <!--需要配置一个返回值参数returning-->
+        <aop:after-returning method="afterReturning1" pointcut-ref="method5" returning="rst"/>
+    </aop:aspect>
+</aop:config>
+```
+```java
+public void afterReturning1(Object rst){
+    System.out.println("afterReturning......result: " + rst);
+}
+```
+###2.around通知：
+```xml
+<aop:config>
+    <aop:pointcut id="method5" expression="execution(* com.dx.springaop.TargetObj.method5(..))"/>
+    <aop:aspect ref="advice">
+        <aop:around method="around2" pointcut-ref="method5"/>
+    </aop:aspect>
+</aop:config>
+```
+```java
+public int around2(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+    System.out.println("around......start....");
+    Object[] args = proceedingJoinPoint.getArgs();
+    for (int i = 0; i < args.length; i++){
+        args[i] = (int)args[i] + 10;
+    }
+    int rst = (Integer) proceedingJoinPoint.proceed(args);
+    System.out.println("around2 result: " + rst);
+    System.out.println("around......end....");
+
+    return rst;
+}
+```
+
+#AOP通知获取异常
+```xml
+<aop:config>
+    <aop:aspect ref="advice">
+        <!--需要配置一个异常参数throwing-->
+        <aop:after-throwing method="afterThrowing1" pointcut-ref="method5" throwing="e"/>
+    </aop:aspect>
+</aop:config>
+```
+```java
+public void afterThrowing1(Throwable e){
+    e.printStackTrace();
+    System.out.println("afterThrowing......");
+}
+```
